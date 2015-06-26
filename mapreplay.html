@@ -3,15 +3,28 @@
 <head>
     <title>Map Replay</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pure/0.6.0/pure-min.css">
     <link rel="stylesheet" type="text/css" href="style.css">
 </head>
 <body>
     <div id="mapreplay-map"></div>
 
+    <div id="mapreplay-options" style="display: none;">
+        <form class="pure-form pure-form-stacked">
+            <fieldset>
+                <div class="pure-g">
+                    <select id="mapreplay-options-vehicle" class="pure-u-1-1"></select>
+                </div>
+            </fieldset>
+        </form>
+    </div>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.js"></script>
     <script type="text/javascript">
         geotab.addin.mapreplay = function(api, state) {
             var map;
+
+            var vehicles;
 
             var initializeMap = function () {
                 // Initialize the map container
@@ -20,6 +33,7 @@
                     setTimeout(function () {
                         map.invalidateSize();
                     }, 500);
+                    document.getElementById("mapreplay-options").style.display = "block";
                 }).setView([43.436884, -79.711760], 15);
 
                 // Add the map tiles layer
@@ -27,9 +41,45 @@
                 L.tileLayer("https://otile{s}-s.mqcdn.com/tiles/1.0.0/map/{z}/{x}/{y}.png", {
                     subdomains: "1234",
                     type: "osm",
-                    attribution: "Data, imagery and map information provided by <a href='http://www.mapquest.com/'  target='_blank'>MapQuest</a>, <a href='http://www.openstreetmap.org/' target='_blank'>Open Street Map</a> and contributors, <a href='http://creativecommons.org/licenses/by-sa/2.0/' target='_blank'>CC-BY-SA</a>  <img src='http://developer.mapquest.com/content/osm/mq_logo.png' border='0'>",
+                    attribution: "Data, imagery and map information provided by <a href='http://www.mapquest.com/'  target='_blank'>MapQuest</a>, <a href='http://www.openstreetmap.org/' target='_blank'>Open Street Map</a> and contributors, <a href='http://creativecommons.org/licenses/by-sa/2.0/' target='_blank'>CC-BY-SA</a>  <img src='https://developer.mapquest.com/content/osm/mq_logo.png' border='0'>",
                     maxZoom: 18
                 }).addTo(map);
+            };
+
+            var getVehicles = function (finishedCallback) {
+                api.call("Get", {
+                    typeName: "Device"
+                }, function (results) {
+                    vehicles = results.map(function (vehicle) {
+                        return {
+                            name: vehicle.name,
+                            id: vehicle.id
+                        };
+                    });
+                    finishedCallback();
+                }, function (errorString) {
+                    alert(errorString);
+                });
+            };
+
+            var populateVehicleSelect = function () {
+                var vehicleSelect = document.getElementById("mapreplay-options-vehicle");
+                vehicleSelect.appendChild((function () {
+                    var defaultOption = document.createElement("option");
+                    defaultOption.default = true;
+                    defaultOption.selected = true;
+                    defaultOption.value = "";
+                    defaultOption.textContent = "Select a vehicle...";
+                    return defaultOption;
+                })());
+                if (vehicles) {
+                    vehicles.forEach(function (vehicle) {
+                        var opt = document.createElement("option");
+                        opt.value = vehicle.id;
+                        opt.textContent = vehicle.name;
+                        vehicleSelect.appendChild(opt);
+                    });
+                }
             };
 
             return {
@@ -43,7 +93,7 @@
                     initializeMap();
 
                     // Must be called to let the app know that we've initialized the addon
-                    callback();
+                    getVehicles(callback);
                 },
                 
                 /*
@@ -53,6 +103,7 @@
                  * been modified since it was first initialized.
                  */      
                 focus: function() {
+                    populateVehicleSelect();
                 },
                 
                 /*
