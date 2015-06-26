@@ -1,0 +1,15 @@
+{
+	"name": "MapReplay",
+	"supportEmail": "aarontoth@geotab.com",
+	"version": "1.0",
+	"items": [
+		{
+			"url": "",
+			"path": "ActivityLink/",
+			"menuName": {
+				"en": "Map Replay"
+			}
+		}
+	],
+	"isSigned": false
+}
