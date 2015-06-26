@@ -1,9 +1,41 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>Map Replay</title>
+    <title>Map Replay</title>
 </head>
 <body>
-	<h1>Hello World!</h1>
+    <script type="text/javascript">
+        geotab.addin.mapreplay = function(api, state) {
+            return {
+                /*
+                 * Page lifecycle method: initialize is called once when the addin first starts
+                 * Use this function to initialize the addin's state such as default values or
+                 * make API requests (Geotab or external) to ensure interface is ready for the user.
+                 */
+                initialize: function(api, state, callback) {
+                    console.log("MapReplay addin initialized");
+                    callback();
+                },
+                
+                /*
+                 * Page lifecycle method: focus is called when the page has finished initialize method
+                 * and again when a user leaves and returns to your addin that has already been initialized.
+                 * Use this function to refresh state such as vehicles, zones or exceptions which may have
+                 * been modified since it was first initialized.
+                 */      
+                focus: function() {
+                    console.log("MapReplay addin focused");
+                },
+                
+                /*
+                 * Page lifecycle method: blur is called when the user is leaving your addin.
+                 * Use this function to save state or commit changes to a datastore or release memory.
+                 */
+                blur: function() {
+                    console.log("MapReplay addin blurred");
+                }
+            };
+        };
+    </script>
 </body>
 </html>
