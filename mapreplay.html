@@ -79,6 +79,12 @@
                 }, true);
             };
 
+            var reset = function () {
+                var tripsSelect = document.getElementById("mapreplay-options-trips");
+                tripsSelect.innerHTML = "";
+                tripsSelect.style.display = "none";
+            };
+
             var getVehicles = function (finishedCallback) {
                 api.call("Get", {
                     typeName: "Device",
@@ -191,6 +197,7 @@
                  * Use this function to save state or commit changes to a datastore or release memory.
                  */
                 blur: function() {
+                    reset();
                 }
             };
         };
