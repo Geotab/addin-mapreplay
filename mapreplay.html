@@ -23,6 +23,7 @@
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.js"></script>
+    <script type="text/javascript" src="https://cdn.rawgit.com/ewoken/Leaflet.MovingMarker/master/MovingMarker.js"></script>
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.10.3/moment.min.js"></script>
     <script type="text/javascript">
         geotab.addin.mapreplay = function(api, state) {
@@ -211,9 +212,16 @@
 
             var drawTrip = function (logs) {
                 replayLayer.clearLayers();
-                var line = [];
-                logs.forEach(function (log) {
+                var line = [],
+                    durations = [],
+                    lastLogDate,
+                    speedup = 5;
+                logs.forEach(function (log, i) {
                     line.push(new L.LatLng(log.latitude, log.longitude));
+                    if (lastLogDate) {
+                        durations.push((new Date(log.dateTime).getTime() - new Date(lastLogDate).getTime())/speedup);
+                    }
+                    lastLogDate = log.dateTime;
                 });
 
                 // Adds the trip line as a layer
@@ -224,6 +232,12 @@
                     opacity: 0.5,
                     smoothFactor: 1
                 }));
+
+                // Adds a moving marker to the layer
+
+                var movingMarker = L.Marker.movingMarker(line, durations);
+                replayLayer.addLayer(movingMarker);
+                movingMarker.start();
 
                 // Fit the map to the selected trip
 
