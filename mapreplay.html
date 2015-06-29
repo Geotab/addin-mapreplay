@@ -15,11 +15,15 @@
                 <div class="pure-g">
                     <select id="mapreplay-options-vehicle" class="pure-u-1-1"></select>
                 </div>
+                <div class="pure-g">
+                    <select id="mapreplay-options-trips" class="pure-u-1-1" style="display: none;"></select>
+                </div>
             </fieldset>
         </form>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.10.3/moment.min.js"></script>
     <script type="text/javascript">
         geotab.addin.mapreplay = function(api, state) {
             var map;
@@ -46,9 +50,41 @@
                 }).addTo(map);
             };
 
+            var initializeEventHandlers = function () {
+                var vehicleSelect = document.getElementById("mapreplay-options-vehicle"),
+                    tripsSelect = document.getElementById("mapreplay-options-trips");
+
+                // Handle when a vehicle is selected
+
+                vehicleSelect.addEventListener("change", function (e) {
+                    var selectedVehicleId = this.value;
+                    tripsSelect.innerHTML = "";
+                    if (selectedVehicleId) {
+
+                        // Add a loading option
+
+                        tripsSelect.appendChild((function () {
+                            var loadingOpt = document.createElement("option");
+                            loadingOpt.textContent = "Loading...";
+                            return loadingOpt;
+                        })());
+                        tripsSelect.style.display = "block";
+
+                        // Get trips for this vehicle, and populate the selection box
+
+                        getTrips(selectedVehicleId, function (trips) {
+                            populateTripsSelect(trips);
+                        });
+                    }
+                }, true);
+            };
+
             var getVehicles = function (finishedCallback) {
                 api.call("Get", {
-                    typeName: "Device"
+                    typeName: "Device",
+                    search: {
+                        fromDate: new Date()
+                    }
                 }, function (results) {
                     vehicles = results.map(function (vehicle) {
                         return {
@@ -59,6 +95,25 @@
                     finishedCallback();
                 }, function (errorString) {
                     alert(errorString);
+                });
+            };
+
+            var getTrips = function (vehicleId, finishedCallback) {
+                var lastWeek = new Date();
+                lastWeek.setDate(lastWeek.getDate() - 7);
+                api.call("Get", {
+                    typeName: "Trip",
+                    search: {
+                        deviceSearch: {
+                            id: vehicleId
+                        },
+                        fromDate: lastWeek
+                    },
+                    resultsLimit: 1000
+                }, function (results) {
+                    finishedCallback(results);
+                }, function (errorString) {
+                    alert(errorString); 
                 });
             };
 
@@ -79,6 +134,30 @@
                         opt.textContent = vehicle.name;
                         vehicleSelect.appendChild(opt);
                     });
+                }
+            };
+
+            var populateTripsSelect = function (trips) {
+                var tripsSelect = document.getElementById("mapreplay-options-trips");
+                tripsSelect.innerHTML = "";
+                tripsSelect.appendChild((function () {
+                    var defaultOption = document.createElement("option");
+                    defaultOption.default = true;
+                    defaultOption.selected = true;
+                    defaultOption.value = "";
+                    defaultOption.textContent = "Select a trip...";
+                    return defaultOption;
+                })());
+                if (trips) {
+                    trips.reverse();
+                    trips.forEach(function (trip) {
+                        var opt = document.createElement("option");
+                        opt.value = trip.id;
+                        opt.textContent = moment(trip.start).format("lll") + " (" + moment.duration(trip.drivingDuration).humanize() + ")";
+                        tripsSelect.appendChild(opt);
+                    });
+                } else {
+                    tripsSelect.style.display = "none";
                 }
             };
 
@@ -103,6 +182,7 @@
                  * been modified since it was first initialized.
                  */      
                 focus: function() {
+                    initializeEventHandlers();
                     populateVehicleSelect();
                 },
                 
