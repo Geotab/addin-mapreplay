@@ -27,6 +27,7 @@
     <script type="text/javascript">
         geotab.addin.mapreplay = function(api, state) {
             var map;
+            var replayLayer;
 
             var vehicles;
 
@@ -41,6 +42,10 @@
                     }, 500);
                     document.getElementById("mapreplay-options").style.display = "block";
                 }).setView([43.436884, -79.711760], 15);
+
+                // Add a layer to put the replay on
+
+                replayLayer = L.layerGroup().addTo(map);
 
                 // Add the map tiles layer
 
@@ -84,9 +89,10 @@
 
                 tripsSelect.addEventListener("change", function (e) {
                     var selectedTripId = this.value,
-                        fullTrip = tripsById[selectedTripId];
+                        fullTrip = tripsById[selectedTripId]; 
                     if (fullTrip) {
                         getLogs(fullTrip, function (logs) {
+                            drawTrip(logs);
                         });
                     }
                 }, true);
@@ -96,6 +102,7 @@
                 var tripsSelect = document.getElementById("mapreplay-options-trips");
                 tripsSelect.innerHTML = "";
                 tripsSelect.style.display = "none";
+                replayLayer.clearLayers(); 
             };
 
             var getVehicles = function (finishedCallback) {
@@ -157,6 +164,7 @@
                     alert(errorString);
                 })
             };
+
             var populateVehicleSelect = function () {
                 var vehicleSelect = document.getElementById("mapreplay-options-vehicle");
                 vehicleSelect.appendChild((function () {
@@ -199,6 +207,27 @@
                 } else {
                     tripsSelect.style.display = "none";
                 }
+            };
+
+            var drawTrip = function (logs) {
+                replayLayer.clearLayers();
+                var line = [];
+                logs.forEach(function (log) {
+                    line.push(new L.LatLng(log.latitude, log.longitude));
+                });
+
+                // Adds the trip line as a layer
+
+                replayLayer.addLayer(new L.polyline(line, {
+                    color: "red",
+                    weight: 7,
+                    opacity: 0.5,
+                    smoothFactor: 1
+                }));
+
+                // Fit the map to the selected trip
+
+                map.fitBounds(line);
             };
 
             return {
