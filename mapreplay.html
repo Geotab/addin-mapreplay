@@ -30,6 +30,8 @@
 
             var vehicles;
 
+            var tripsById = {};
+
             var initializeMap = function () {
                 // Initialize the map container
 
@@ -77,6 +79,17 @@
                         });
                     }
                 }, true);
+
+                // Handle when a trip is selected
+
+                tripsSelect.addEventListener("change", function (e) {
+                    var selectedTripId = this.value,
+                        fullTrip = tripsById[selectedTripId];
+                    if (fullTrip) {
+                        getLogs(fullTrip, function (logs) {
+                        });
+                    }
+                }, true);
             };
 
             var reset = function () {
@@ -116,13 +129,34 @@
                         fromDate: lastWeek
                     },
                     resultsLimit: 1000
-                }, function (results) {
-                    finishedCallback(results);
+                }, function (trips) {
+                    tripsById = {};
+                    for (var i = 0; i < trips.length; i++) {
+                        var trip = trips[i];
+                        tripsById[trip.id] = trip;
+                    };
+                    finishedCallback(trips);
                 }, function (errorString) {
                     alert(errorString); 
                 });
             };
 
+            var getLogs = function (trip, finishedCallback) {
+                api.call("Get", {
+                    typeName: "LogRecord",
+                    search: {
+                        deviceSearch: {
+                            id: trip.device.id
+                        },
+                        fromDate: trip.start,
+                        toDate: trip.stop
+                    }
+                }, function (logs) {
+                    finishedCallback(logs);
+                }, function (errorString) {
+                    alert(errorString);
+                })
+            };
             var populateVehicleSelect = function () {
                 var vehicleSelect = document.getElementById("mapreplay-options-vehicle");
                 vehicleSelect.appendChild((function () {
