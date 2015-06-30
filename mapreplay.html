@@ -22,6 +22,17 @@
         </form>
     </div>
 
+    <div id="mapreplay-dashboard" class="pure-g">
+        <div class="pure-u-1-6">
+            <h1 id="mapreplay-dashboard-speed">0</h1>
+            <h2>Km/h</h2>
+        </div>
+        <div class="pure-u-5-6">
+            <h1 id="mapreplay-dashboard-time"></h1>
+            <h2>Time</h2>
+        </div>
+    </div>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.js"></script>
     <script type="text/javascript" src="https://cdn.rawgit.com/ewoken/Leaflet.MovingMarker/master/MovingMarker.js"></script>
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.10.3/moment.min.js"></script>
@@ -103,7 +114,9 @@
                 var tripsSelect = document.getElementById("mapreplay-options-trips");
                 tripsSelect.innerHTML = "";
                 tripsSelect.style.display = "none";
-                replayLayer.clearLayers(); 
+                replayLayer.clearLayers();
+                document.getElementById("mapreplay-dashboard-speed").textContent = "0";
+                document.getElementById("mapreplay-dashboard-time").textContent = moment().format("lll"); 
             };
 
             var getVehicles = function (finishedCallback) {
@@ -210,6 +223,38 @@
                 }
             };
 
+            var updateDashboardTimeout;
+            var updateDashboard = function (logs, durations) {
+
+                // We're done this recursive call when all the logs have been displayed on the dashboard
+
+                if (!logs.length) {
+                    return;
+                }
+
+                // Reset the display if another trip had been selected
+
+                if (updateDashboardTimeout) {
+                    clearTimeout(updateDashboardTimeout);
+                }
+
+                var speedDisplay = document.getElementById("mapreplay-dashboard-speed"),
+                    timeDisplay = document.getElementById("mapreplay-dashboard-time");
+
+                // Update the display with the next log
+
+                var log = logs.shift();
+                    speedDisplay.textContent = Math.round(log.speed);
+                    timeDisplay.textContent = moment(log.dateTime).format('lll');
+
+                // Add a timeout corresponding to the duration between the logs until we display the next log
+
+                var waitDuration = durations.shift() || 0;
+                updateDashboardTimeout = setTimeout(function () {
+                    updateDashboard(logs, durations);
+                }, waitDuration);
+            };
+
             var drawTrip = function (logs) {
                 replayLayer.clearLayers();
                 var line = [],
@@ -239,6 +284,9 @@
                 replayLayer.addLayer(movingMarker);
                 movingMarker.start();
 
+                // Update the dashboard as the trip progresses
+                updateDashboard(logs.slice(0), durations.slice(0));
+
                 // Fit the map to the selected trip
 
                 map.fitBounds(line);
@@ -265,6 +313,7 @@
                  * been modified since it was first initialized.
                  */      
                 focus: function() {
+                    reset();
                     initializeEventHandlers();
                     populateVehicleSelect();
                 },
