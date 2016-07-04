@@ -4,8 +4,8 @@
 	"version": "1.0",
 	"items": [
 		{
-			"icon": "https://googledrive.com/host/0B2RJEh1MQk12cnpTVElacWdWXzg/icon.svg",
-			"url": "https://googledrive.com/host/0B2RJEh1MQk12cnpTVElacWdWXzg/mapreplay.html",
+			"icon": "https://your-url-here/icon.svg",
+			"url": "https://your-url-here/mapreplay.html",
 			"path": "ActivityLink/",
 			"menuName": {
 				"en": "Map Replay"
