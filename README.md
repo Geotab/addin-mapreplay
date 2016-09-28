@@ -2,7 +2,7 @@
 
 An addin which replays a vehicle's past trip on a map.
 
-![MapReplay Screenshot](https://googledrive.com/host/0B2RJEh1MQk12cnpTVElacWdWXzg/screenshot.png)
+![MapReplay Screenshot](https://raw.githubusercontent.com/Geotab/addin-mapreplay/master/screenshot.png)
 
 ## Getting the code
 
@@ -35,3 +35,9 @@ and so on...
 ## Installing
 
 Follow the addin development guides on [my.geotab.com/sdk](https://my.geotab.com/sdk).
+
+## Updates
+
+#### September 2016
+
+* Switched map tile URL to OpenStreetMap as MapQuest no longer supports anonymous tile access.
