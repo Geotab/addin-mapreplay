@@ -2,6 +2,8 @@
 
 An addin which replays a vehicle's past trip on a map.
 
+**NOTE: This addin is for demonstration and tutorial purposes only and should not be used in production environments.**
+
 ![MapReplay Screenshot](https://raw.githubusercontent.com/Geotab/addin-mapreplay/master/screenshot.png)
 
 ## Getting the code
